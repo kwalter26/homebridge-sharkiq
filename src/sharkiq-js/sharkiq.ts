@@ -225,6 +225,22 @@ class SharkIqVacuum {
     }
   }
 
+  async update_metadata() {
+    this.log.debug('Triggering metadata update')
+    try {
+      const meta = await this.ayla_api.get_metadata(this._dsn);
+      for (const m in meta) {
+        const datum=meta[m]['datum']
+        const values = JSON.parse(datum['value'])
+        if(values['vacModelNumber'] && values['vacSerialNumber']) {
+          this.property_values[Properties.DEVICE_SERIAL_NUMBER] = values['vacModelNumber'] + ' ' + values['vacSerialNumber']
+        }
+      }
+    } catch {
+      this.log.debug('Promise Rejected with updating properties.');
+    }
+  }
+
   // Update or set properties locally from update function
   _do_update(full_update, properties) {
     const property_names = properties.map((property) => {

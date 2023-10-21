@@ -249,6 +249,23 @@ class AylaApi {
     }
   }
 
+  async get_metadata(dsn: string) {
+    const url = `${this.europe ? global_vars.EU_DEVICE_URL : global_vars.DEVICE_URL}/apiv1/dsns/${dsn}/data.json`;
+    try {
+      const auth_header = await this.auth_header();
+      const resp = await this.makeRequest('GET', url, null, auth_header);
+      const metadata = JSON.parse(resp.response);
+      if (resp.status === 401) {
+        this.log.error('API Error: Unauthorized');
+        return {};
+      }
+      return metadata;
+    } catch {
+      this.log.debug('Promise Rejected with get metadata.');
+      return {};
+    }
+  }
+
   // Get and return array of devices
   async get_devices(update = true) {
     try {
@@ -259,6 +276,7 @@ class AylaApi {
       if (update) {
         for (let i = 0; i < devices.length; i++) {
           await devices[i].update();
+          await devices[i].update_metadata();
           devices[i]._update_metadata();
         }
       }
